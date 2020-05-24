@@ -2,6 +2,7 @@
 #include <time.h>
 #include <list>
 #include <fstream>
+#include <vector>
 
 struct Edge {
 	const unsigned int U, V;
@@ -34,29 +35,31 @@ std::list<Edge>* randow(const unsigned int& amountVertices, const int& isValued,
 }
 
 std::list<Edge>* simpleRandow(const unsigned int& amountVertices, const bool& isDigraph, const int& isValued, const float& probability) {
-	int* matrix = new int[amountVertices * amountVertices];
-	for (unsigned int i = 0; i < amountVertices * amountVertices; i++)
-		matrix[i] = 0;
+	size_t aux = amountVertices * (size_t)amountVertices;
+	std::vector<bool> vector(aux, false);
 
 	for (unsigned int u = 0; u < amountVertices; u++)
 		for (unsigned int v = 0; v < amountVertices; v++)
-			if (u != v) {
-				if (isToInsert(probability))
-					if (v < u && !matrix[u * amountVertices + v])
-						matrix[v * amountVertices + u] = randomValue(-isValued, isValued);
-					else
-						matrix[u * amountVertices + v] = randomValue(-isValued, isValued);
-			}
+			if (u != v)
+				if (isToInsert(probability)) {
+					aux = u * (size_t)amountVertices + v;
+					if (v < u && !vector[aux]) {
+						aux = v * (size_t)amountVertices + u;
+						vector[aux] = true;
+					} else
+						vector[aux] = true;
+				}
 
 	std::list<Edge>* edges = new std::list<Edge>();
 
 	for (unsigned int u = 0; u < amountVertices; u++)
-		for (unsigned int v = 0; v < amountVertices; v++)
-			if (matrix[u * amountVertices + v])
-				edges->emplace_back(u + 1, v + 1, matrix[u * amountVertices + v]);
+		for (unsigned int v = 0; v < amountVertices; v++) {
+			aux = u * (size_t)amountVertices + v;
+			if (vector[aux])
+				edges->emplace_back(u + 1, v + 1, randomValue(-isValued, isValued));
+		}
 
-	delete[] matrix;
-	matrix = nullptr;
+	vector.clear();
 	return edges;
 }
 
@@ -141,9 +144,8 @@ int main() {
 				else
 					edges = simpleRandow(amountVertices, isDigraph, isValued, probability);
 
-			} else if (value == 3) {
+			} else if (value == 3) 
 				edges = completeRegular(amountVertices, isDigraph, isValued);
-			}
 		}
 
 		if (edges != nullptr) {
