@@ -10,41 +10,47 @@ struct Edge {
 
 	Edge(const unsigned int u, const unsigned int v, const int w) : U(u), V(v), W(w) {}
 	~Edge() {}
-	const bool operator<(const Edge& rhs) const {
-		return U < rhs.U || U == rhs.U && V < rhs.V;
+	const bool operator>(const Edge& other) const {
+		if (U > other.U) return true;
+		if (other.U > U) return false;
+		if (V > other.V) return true;
+		if (other.V > V) return false;
+		if (W > other.W) return true;
+		if (other.W > W) return false;
+		return false;
 	}
 };
 
-const int randomValue(const int& min, const int& max) {
+inline const int randomValue(const int& min, const int& max) {
 	return (rand() % ((max - min) + 1)) + min;
 }
 
-const bool isToInsert(const float& probability) {
+inline const bool isToInsert(const float& probability) {
 	return (rand() % 100) < probability;
 }
 
-std::list<Edge>* randow(const unsigned int& amountVertices, const int& isValued, const float& probability) {
+std::list<Edge>* randow(const unsigned int& amountVertices, const int& maxValue, const int& minValue, const float& probability) {
 	std::list<Edge>* edges = new std::list<Edge>();
 
-	for (unsigned int u = 1; u <= amountVertices; u++)
-		for (unsigned int v = 1; v <= amountVertices; v++)
+	for (unsigned int u = 1; u <= amountVertices; ++u)
+		for (unsigned int v = 1; v <= amountVertices; ++v)
 			if (isToInsert(probability))
-				edges->emplace_back(u, v, randomValue(-isValued, isValued));
+				edges->emplace_back(u, v, randomValue(minValue, maxValue));
 
 	return edges;
 }
 
-std::list<Edge>* simpleRandow(const unsigned int& amountVertices, const bool& isDigraph, const int& isValued, const float& probability) {
-	size_t aux = amountVertices * (size_t)amountVertices;
+std::list<Edge>* simpleRandow(const unsigned int& amountVertices, const bool& isDigraph, const int& maxValue, const int& minValue, const float& probability) {
+	size_t aux = amountVertices * (size_t) amountVertices;
 	std::vector<bool> vector(aux, false);
 
-	for (unsigned int u = 0; u < amountVertices; u++)
-		for (unsigned int v = 0; v < amountVertices; v++)
+	for (unsigned int u = 0; u < amountVertices; ++u)
+		for (unsigned int v = 0; v < amountVertices; ++v)
 			if (u != v)
 				if (isToInsert(probability)) {
-					aux = u * (size_t)amountVertices + v;
+					aux = u * (size_t) amountVertices + v;
 					if (v < u && !vector[aux]) {
-						aux = v * (size_t)amountVertices + u;
+						aux = v * (size_t) amountVertices + u;
 						vector[aux] = true;
 					} else
 						vector[aux] = true;
@@ -52,36 +58,36 @@ std::list<Edge>* simpleRandow(const unsigned int& amountVertices, const bool& is
 
 	std::list<Edge>* edges = new std::list<Edge>();
 
-	for (unsigned int u = 0; u < amountVertices; u++)
-		for (unsigned int v = 0; v < amountVertices; v++) {
-			aux = u * (size_t)amountVertices + v;
+	for (unsigned int u = 0; u < amountVertices; ++u)
+		for (unsigned int v = 0; v < amountVertices; ++v) {
+			aux = u * (size_t) amountVertices + v;
 			if (vector[aux])
-				edges->emplace_back(u + 1, v + 1, randomValue(-isValued, isValued));
+				edges->emplace_back(u + 1, v + 1, randomValue(minValue, maxValue));
 		}
 
 	vector.clear();
 	return edges;
 }
 
-std::list<Edge>* completeRegular(const unsigned int& amountVertices, const bool& isDigraph, const int& isValued) {
+std::list<Edge>* completeRegular(const unsigned int& amountVertices, const bool& isDigraph, const int& maxValue, const int& minValue) {
 	std::list<Edge>* edges = new std::list<Edge>();
 
-	for (unsigned int u = 1; u <= amountVertices; u++)
-		for (unsigned int v = u + 1; v <= amountVertices; v++) {
-			edges->emplace_back(u, v, randomValue(-isValued, isValued));
+	for (unsigned int u = 1; u <= amountVertices; ++u)
+		for (unsigned int v = u + 1; v <= amountVertices; ++v) {
+			edges->emplace_back(u, v, randomValue(minValue, maxValue));
 			if (isDigraph)
-				edges->emplace_back(v, u, randomValue(-isValued, isValued));
+				edges->emplace_back(v, u, randomValue(minValue, maxValue));
 		}
 	return edges;
 }
 
-std::list<Edge>* completeBipartite(const unsigned int& amountVerticesA, const unsigned int& amountVerticesB, const int& isValued) {
+std::list<Edge>* completeBipartite(const unsigned int& amountVerticesA, const unsigned int& amountVerticesB, const int& maxValue, const int& minValue) {
 	const unsigned int amountVertices = amountVerticesA + amountVerticesB;
 	std::list<Edge>* edges = new std::list<Edge>();
 
-	for (unsigned int u = 1; u <= amountVerticesB; u++)
-		for (unsigned int v = 1; v <= amountVerticesA; v++)
-			edges->emplace_back(u, v + amountVerticesB, randomValue(-isValued, isValued));
+	for (unsigned int u = 1; u <= amountVerticesB; ++u)
+		for (unsigned int v = 1; v <= amountVerticesA; ++v)
+			edges->emplace_back(u, v + amountVerticesB, randomValue(minValue, maxValue));
 
 	return edges;
 }
@@ -101,9 +107,11 @@ int main() {
 
 	if (value > 0) {
 		std::list<Edge>* edges = nullptr;
-		unsigned int amountVertices;
-		int isValued;
-		bool isDigraph;
+		unsigned int amountVertices = 0;
+		int minValue = 0;
+		int maxValue = minValue;
+		bool isValued = false;
+		bool isDigraph = isValued;
 
 		if (value == 4) {
 			std::cout << "Dgt a qtd de Vertices do conjunto 1." << std::endl;
@@ -114,22 +122,32 @@ int main() {
 			unsigned int amountVerticesB;
 			std::cin >> amountVerticesB;
 
-			std::cout << "Dgt 0: Grafo nao valorado.\nDgt o maior valor : Grafo valorado." << std::endl;
+			std::cout << "Dgt 0: Grafo nao valorado.\nDgt qualquer valor : Grafo valorado." << std::endl;
 			std::cin >> isValued;
-			isValued = abs(isValued);
+			if (isValued) {
+				std::cout << "Dgt o maior valor do Grafo valorado." << std::endl;
+				std::cin >> maxValue;
+				std::cout << "Dgt o menor valor do Grafo valorado." << std::endl;
+				std::cin >> minValue;
+			}
 
 			isDigraph = false;
 
-			edges = completeBipartite(amountVerticesA, amountVerticesB, isValued);
+			edges = completeBipartite(amountVerticesA, amountVerticesB, maxValue, minValue);
 
 			amountVertices = amountVerticesA + amountVerticesB;
 		} else {
 			std::cout << "Dgt a qtd de Vertices." << std::endl;
 			std::cin >> amountVertices;
 
-			std::cout << "Dgt 0: Grafo nao valorado.\nDgt o maior valor : Grafo valorado." << std::endl;
+			std::cout << "Dgt 0: Grafo nao valorado.\nDgt qualquer valor : Grafo valorado." << std::endl;
 			std::cin >> isValued;
-			isValued = abs(isValued);
+			if (isValued) {
+				std::cout << "Dgt o maior valor do Grafo valorado." << std::endl;
+				std::cin >> maxValue;
+				std::cout << "Dgt o menor valor do Grafo valorado." << std::endl;
+				std::cin >> minValue;
+			}
 
 			std::cout << "Dgt 0: Grafo nao dirigido.\nDgt qualquer valor: Grafo dirigido." << std::endl;
 			std::cin >> isDigraph;
@@ -140,12 +158,12 @@ int main() {
 				std::cin >> probability;
 
 				if (value == 1)
-					edges = randow(amountVertices, isValued, probability);
+					edges = randow(amountVertices, maxValue, minValue, probability);
 				else
-					edges = simpleRandow(amountVertices, isDigraph, isValued, probability);
+					edges = simpleRandow(amountVertices, isDigraph, maxValue, minValue, probability);
 
-			} else if (value == 3) 
-				edges = completeRegular(amountVertices, isDigraph, isValued);
+			} else if (value == 3)
+				edges = completeRegular(amountVertices, isDigraph, maxValue, minValue);
 		}
 
 		if (edges != nullptr) {
