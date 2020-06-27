@@ -1,7 +1,7 @@
 #include <iostream>
+#include <fstream>
 #include <time.h>
 #include <list>
-#include <fstream>
 #include <vector>
 
 struct Edge {
@@ -10,15 +10,6 @@ struct Edge {
 
 	Edge(const unsigned int u, const unsigned int v, const int w) : U(u), V(v), W(w) {}
 	~Edge() {}
-	const bool operator>(const Edge& other) const {
-		if (U > other.U) return true;
-		if (other.U > U) return false;
-		if (V > other.V) return true;
-		if (other.V > V) return false;
-		if (W > other.W) return true;
-		if (other.W > W) return false;
-		return false;
-	}
 };
 
 inline const int randomValue(const int& min, const int& max) {
