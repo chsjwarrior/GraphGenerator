@@ -10,6 +10,13 @@ struct Edge {
 
 	Edge(const unsigned int u, const unsigned int v, const int w) : U(u), V(v), W(w) {}
 	~Edge() {}
+
+	const bool operator<(const Edge& other) const {
+		return U < other.U ||
+			U == other.U && V < other.V ||
+			U == other.U && V == other.V &&
+			W < other.W;
+	}
 };
 
 inline const int randomValue(const int& min, const int& max) {
@@ -24,7 +31,7 @@ std::list<Edge>* randow(const unsigned int& amountVertices, const int& maxValue,
 	std::list<Edge>* edges = new std::list<Edge>();
 
 	for (unsigned int u = 1; u <= amountVertices; ++u)
-		for (unsigned int v = 1; v <= amountVertices; ++v)
+		for (unsigned int v = amountVertices; v > 0; --v)
 			if (isToInsert(probability))
 				edges->emplace_back(u, v, randomValue(minValue, maxValue));
 
@@ -36,7 +43,7 @@ std::list<Edge>* simpleRandow(const unsigned int& amountVertices, const bool& is
 	std::vector<bool> vector(aux, false);
 
 	for (unsigned int u = 0; u < amountVertices; ++u)
-		for (unsigned int v = 0; v < amountVertices; ++v)
+		for (unsigned int v = amountVertices; v > 0; --v)
 			if (u != v)
 				if (isToInsert(probability)) {
 					aux = u * (size_t) amountVertices + v;
@@ -58,12 +65,6 @@ std::list<Edge>* simpleRandow(const unsigned int& amountVertices, const bool& is
 
 	vector.clear();
 	return edges;
-}
-
-std::list<Edge>* randowByDegree(const unsigned int& amountVertices, const bool& isDigraph, const int& maxValue, const int& minValue, const std::vector<unsigned int>& inDegree, const std::vector<unsigned int>& outDegree) {
-
-
-
 }
 
 std::list<Edge>* completeRegular(const unsigned int& amountVertices, const bool& isDigraph, const int& maxValue, const int& minValue) {
@@ -89,8 +90,7 @@ std::list<Edge>* completeBipartite(const unsigned int& amountVerticesA, const un
 	return edges;
 }
 
-template<typename T>
-int signedRead(const T arg, const int& min, const int& max) {
+int signedRead(const char* arg, const int& min, const int& max) {
 	int value = NULL;
 	do {
 		std::cout << arg << std::endl;
@@ -105,8 +105,7 @@ int signedRead(const T arg, const int& min, const int& max) {
 	return value;
 }
 
-template<typename T>
-unsigned int unsignedRead(const T arg, const unsigned int& min, const unsigned int& max) {
+unsigned int unsignedRead(const char* arg, const unsigned int& min, const unsigned int& max) {
 	unsigned int value = NULL;
 	do {
 		std::cout << arg << std::endl;
@@ -176,6 +175,8 @@ int main() {
 					edges = randow(amountVertices, maxValue, minValue, probability);
 				else
 					edges = simpleRandow(amountVertices, isDigraph, maxValue, minValue, probability);
+
+				edges->sort();
 
 			} else if (value == 3)
 				edges = completeRegular(amountVertices, isDigraph, maxValue, minValue);
